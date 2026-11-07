@@ -4,7 +4,6 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("TkAgg")
 
-import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -100,7 +99,6 @@ def compute_predictions(meta, classnames):
     # texts we need: the small label sets + all 211 countries
     set_names = [n for names in LABEL_SETS.values() for n in names]
     texts = [TEMPLATE.format(n) for n in set_names + classnames]
-    scale = model.logit_scale.exp().item()
 
     results = []
 
@@ -108,10 +106,7 @@ def compute_predictions(meta, classnames):
         chunk = meta[start:start + BATCH]
         images = [Image.open(CACHE / "images" / m["file"]).convert("RGB") for m in chunk]
         inputs = proc(text=texts, images=images, return_tensors="pt", padding=True).to(device)
-        out = model(**inputs)
-        img_emb = out.image_embeds  # already L2-normalized
-        txt_emb = out.text_embeds
-        logits = scale * img_emb @ txt_emb.T  # (batch, n_texts)
+        logits = model(**inputs).logits_per_image  # (batch, n_texts): 100 x cosine similarity
 
         for row in logits:
             entry, pos = {"sets": {}}, 0
@@ -138,7 +133,7 @@ def truth_index(m):
 
 def is_mistake(m, p):
     t = truth_index(m)
-    return any(int(np.argmax(probs)) != t for probs in p["sets"].values())
+    return any(probs.index(max(probs)) != t for probs in p["sets"].values())
 
 
 def explorer(meta, preds):
@@ -194,7 +189,7 @@ def explorer(meta, preds):
             for y, v in enumerate(probs[::-1]):
                 ax.text(min(v + 0.01, 0.88), y, f"{v:.1%}", va="center", fontsize=10)
 
-            pred = int(np.argmax(probs))
+            pred = probs.index(max(probs))
             margin = abs(probs[0] - probs[1])
             verdict = "✓ correct" if pred == t else "✗ wrong"
             kind = "close call" if margin < CLOSE_CALL else "confident"
