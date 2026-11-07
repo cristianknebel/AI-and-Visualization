@@ -16,7 +16,7 @@ SPLIT = "test"  # 100 photos per country in the test split
 N_PER_COUNTRY = 100  # lower this (e.g. 30) for a faster first run
 MODEL_NAME = "openai/clip-vit-base-patch32"
 TEMPLATE = "a photo i took in {}."
-CACHE = Path("cache_at_au")
+CACHE = Path(__file__).parent / "cache_at_au"  # next to this script, wherever it is started from
 BATCH = 16
 
 # Every label set lists Austria first, Australia second.
