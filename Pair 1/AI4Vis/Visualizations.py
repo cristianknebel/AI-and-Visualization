@@ -17,6 +17,8 @@ N_PER_COUNTRY = 100  # lower this (e.g. 30) for a faster first run
 MODEL_NAME = "openai/clip-vit-base-patch32"
 TEMPLATE = "a photo i took in {}."
 CACHE = Path(__file__).parent / "cache_at_au"  # next to this script, wherever it is started from
+# The cache is reused while it exists: after changing SPLIT or N_PER_COUNTRY delete cache_at_au,
+# after changing MODEL_NAME or TEMPLATE delete cache_at_au/predictions.json.
 BATCH = 16
 
 # Every label set lists Austria first, Australia second.
@@ -87,7 +89,10 @@ def compute_predictions(meta):
     pred_path = CACHE / "predictions.json"
 
     if pred_path.exists():
-        return json.loads(pred_path.read_text(encoding="utf-8"))
+        preds = json.loads(pred_path.read_text(encoding="utf-8"))
+        if len(preds) == len(meta) and all(list(p["sets"]) == list(LABEL_SETS) for p in preds):
+            return preds
+        print("predictions.json doesn't match the photos or LABEL_SETS, recomputing...")
 
     classnames = load_classnames()
     device = "cuda" if torch.cuda.is_available() else "cpu"
