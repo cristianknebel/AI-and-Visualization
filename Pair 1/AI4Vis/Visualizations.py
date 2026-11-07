@@ -145,11 +145,12 @@ def explorer(meta, preds):
 
     fig = plt.figure(figsize=(14, 8))
     fig.canvas.manager.set_window_title("CLIP prediction explorer: Austria vs. Australia")
-    gs = fig.add_gridspec(4, 2, width_ratios=[1.25, 1], hspace=1.0, wspace=0.35,
+    rows = len(LABEL_SETS) + 1  # one chart per label set, then the top-5 chart
+    gs = fig.add_gridspec(rows, 2, width_ratios=[1.25, 1], hspace=1.0, wspace=0.35,
                           left=0.03, right=0.97, top=0.90, bottom=0.12)
     ax_img = fig.add_subplot(gs[:, 0])
     ax_sets = [fig.add_subplot(gs[i, 1]) for i in range(len(LABEL_SETS))]
-    ax_top = fig.add_subplot(gs[3, 1])
+    ax_top = fig.add_subplot(gs[rows - 1, 1])
 
     def draw():
         for ax in [ax_img, *ax_sets, ax_top]:
