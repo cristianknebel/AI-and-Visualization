@@ -43,7 +43,7 @@ def load_classnames():
     return names
 
 
-def collect_images(classnames):
+def collect_images():
     """Stream the split once and save the Austrian/Australian photos locally."""
     img_dir, meta_path = CACHE / "images", CACHE / "meta.json"
 
@@ -51,6 +51,7 @@ def collect_images(classnames):
         return json.loads(meta_path.read_text(encoding="utf-8"))
 
     img_dir.mkdir(parents=True, exist_ok=True)
+    classnames = load_classnames()
     wanted = {classnames.index(country): country for country in COUNTRIES}
     counts = {country: 0 for country in COUNTRIES}
     meta = []
@@ -82,12 +83,13 @@ def collect_images(classnames):
 
 # Model
 @torch.no_grad()
-def compute_predictions(meta, classnames):
+def compute_predictions(meta):
     pred_path = CACHE / "predictions.json"
 
     if pred_path.exists():
         return json.loads(pred_path.read_text(encoding="utf-8"))
 
+    classnames = load_classnames()
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Loading {MODEL_NAME} on {device}...")
     model = CLIPModel.from_pretrained(MODEL_NAME).to(device).eval()
@@ -245,7 +247,6 @@ def explorer(meta, preds):
 
 
 if __name__ == "__main__":
-    classnames = load_classnames()
-    meta = collect_images(classnames)
-    preds = compute_predictions(meta, classnames)
+    meta = collect_images()
+    preds = compute_predictions(meta)
     explorer(meta, preds)
