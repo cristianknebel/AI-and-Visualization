@@ -178,11 +178,11 @@ def explorer(meta, preds):
             names = LABEL_SETS[key]
             colors = [COLORS[c] for c in COUNTRIES]
             ax.barh(names[::-1], probs[::-1], color=colors[::-1])
-            ax.set_xlim(0, 1)
+            ax.set_xlim(0, 1.15)  # room for the label of a bar near 100%
             ax.tick_params(labelsize=10)
 
             for y, v in enumerate(probs[::-1]):
-                ax.text(min(v + 0.01, 0.88), y, f"{v:.1%}", va="center", fontsize=10)
+                ax.text(v + 0.01, y, f"{v:.1%}", va="center", fontsize=10)
 
             pred = int(np.argmax(probs))
             margin = abs(probs[0] - probs[1])
@@ -197,11 +197,11 @@ def explorer(meta, preds):
         vals = [v for _, v in p["top211"]][::-1]
         colors = [COLORS[m["country"]] if n == m["country"] else "#9aa0a6" for n in names]
         ax_top.barh(names, vals, color=colors)
-        ax_top.set_xlim(0, 1)
+        ax_top.set_xlim(0, 1.15)
         ax_top.tick_params(labelsize=10)
 
         for y, v in enumerate(vals):
-            ax_top.text(min(v + 0.01, 0.88), y, f"{v:.1%}", va="center", fontsize=10)
+            ax_top.text(v + 0.01, y, f"{v:.1%}", va="center", fontsize=10)
 
         ax_top.set_title("Top 5 of all 211 countries (true country coloured)",
                          fontsize=10, loc="left")
