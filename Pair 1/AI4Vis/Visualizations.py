@@ -227,6 +227,7 @@ def explorer(meta, preds):
     b_prev = Button(fig.add_axes([0.30, 0.025, 0.08, 0.05]), "◀ Prev")
     b_next = Button(fig.add_axes([0.39, 0.025, 0.08, 0.05]), "Next ▶")
     chk = CheckButtons(fig.add_axes([0.50, 0.02, 0.14, 0.06]), ["Only mistakes"], [False])
+    fig.widgets = [b_prev, b_next, chk]  # matplotlib only keeps weak references to widgets
     b_prev.on_clicked(lambda _e: step(-1))
     b_next.on_clicked(lambda _e: step(+1))
     chk.on_clicked(toggle)
