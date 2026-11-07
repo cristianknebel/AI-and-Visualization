@@ -145,7 +145,7 @@ def explorer(meta, preds):
 
     fig = plt.figure(figsize=(14, 8))
     fig.canvas.manager.set_window_title("CLIP prediction explorer: Austria vs. Australia")
-    gs = fig.add_gridspec(4, 2, width_ratios=[1.25, 1], hspace=1.0, wspace=0.15,
+    gs = fig.add_gridspec(4, 2, width_ratios=[1.25, 1], hspace=1.0, wspace=0.35,
                           left=0.03, right=0.97, top=0.90, bottom=0.12)
     ax_img = fig.add_subplot(gs[:, 0])
     ax_sets = [fig.add_subplot(gs[i, 1]) for i in range(len(LABEL_SETS))]
@@ -193,7 +193,7 @@ def explorer(meta, preds):
                          color="#1a7f37" if pred == t else "#b42318")
 
         # top-5 over all 211 countries
-        names = [n for n, _ in p["top211"]][::-1]
+        names = [n if len(n) <= 22 else n[:21] + "…" for n, _ in p["top211"]][::-1]  # long names hit the photo
         vals = [v for _, v in p["top211"]][::-1]
         colors = [COLORS[m["country"]] if n == m["country"] else "#9aa0a6" for n in names]
         ax_top.barh(names, vals, color=colors)
