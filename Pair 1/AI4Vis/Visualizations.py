@@ -236,10 +236,10 @@ def explorer(meta, preds):
 
     try:
         manager.window.state("zoomed")        # TkAgg (default on Windows)
-    except AttributeError:
+    except Exception:                         # Linux Tk has no "zoomed" (TclError)
         try:
             manager.window.showMaximized()    # Qt backends
-        except AttributeError:
+        except Exception:
             pass                              # other backends: leave as is
 
     draw()
