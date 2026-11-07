@@ -7,6 +7,7 @@ matplotlib.use("TkAgg")
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 from matplotlib.widgets import Button, CheckButtons
 from PIL import Image
 from datasets import load_dataset
@@ -168,9 +169,17 @@ def explorer(meta, preds):
         m, p = meta[j], preds[j]
         t = truth_index(m)
 
-        # image
-        ax_img.imshow(Image.open(CACHE / "images" / m["file"]))
+        # image, with the parts CLIP never sees shaded: it keeps only the centre square
+        img = Image.open(CACHE / "images" / m["file"])
+        ax_img.imshow(img)
+        w, h = img.size
+        s = min(w, h)
+        for x, y, dx, dy in [(0, 0, (w - s) / 2, h), ((w + s) / 2, 0, (w - s) / 2, h),
+                             (0, 0, w, (h - s) / 2), (0, (h + s) / 2, w, (h - s) / 2)]:
+            ax_img.add_patch(Rectangle((x - 0.5, y - 0.5), dx, dy, color="black", alpha=0.55, linewidth=0))
         ax_img.axis("off")
+        ax_img.text(0.5, -0.01, "shaded: cut off before CLIP sees the photo", transform=ax_img.transAxes,
+                    ha="center", va="top", fontsize=9, color="#555555")
         ax_img.set_title(f"True country: {m['country']}   ({m['file']})",
                          color=COLORS[m["country"]], fontsize=13, fontweight="bold")
 
