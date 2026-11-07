@@ -13,12 +13,12 @@ from transformers import CLIPModel, CLIPProcessor
 # Settings
 REPO = "clip-benchmark/wds_country211"
 SPLIT = "test"  # 100 photos per country in the test split
-N_PER_COUNTRY = 100  # lower this (e.g. 30) for a faster first run
+N_PER_COUNTRY = 100  # all of them; fewer saves little, as the scan passes ~1000 other photos first
 MODEL_NAME = "openai/clip-vit-base-patch32"
 TEMPLATE = "a photo i took in {}."
 CACHE = Path(__file__).parent / "cache_at_au"  # next to this script, wherever it is started from
 # The cache is reused while it exists: after changing SPLIT or N_PER_COUNTRY delete cache_at_au,
-# after changing MODEL_NAME or TEMPLATE delete cache_at_au/predictions.json.
+# after changing MODEL_NAME, TEMPLATE or the names inside a label set delete cache_at_au/predictions.json.
 BATCH = 16
 
 # Every label set lists Austria first, Australia second.

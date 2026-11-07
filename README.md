@@ -29,4 +29,4 @@ pip install -r requirements.txt
 python "Pair 1/AI4Vis/Visualizations.py"
 ```
 
-The photos and predictions are cached in `Pair 1/AI4Vis/cache_at_au`, so the explorer opens without downloading anything. Without the cache, the first run downloads the CLIP weights (about 600 MB) and scans the dataset.
+The photos and predictions are cached in `Pair 1/AI4Vis/cache_at_au`, so the explorer opens without downloading anything. Without the cache, the first run downloads the CLIP weights (about 1.2 GB, as transformers fetches two copies) and about 210 MB of the dataset.
