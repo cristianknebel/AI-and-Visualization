@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("TkAgg")
+
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
