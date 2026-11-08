@@ -9,6 +9,7 @@ We compare different label sets, such as:
 - `[Austria, Australia]`
 - `[Österreich, Australien]`
 - `[Österreich, Australia]`
+
 We also group the photos by type (mountains, lakes, city sights, everyday scenes) to see where the errors concentrate.
  
 ## Model
