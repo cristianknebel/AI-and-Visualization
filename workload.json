@@ -1,0 +1,26 @@
+{
+    "team_name": "The Visionaires",
+    "students": [
+        {
+            "first_name": "Cristian",
+            "last_name": "Knebel",
+            "workload": 0.25
+        },
+        {
+            "first_name": "Alexander",
+            "last_name": "Strasser",
+            "workload": 0.25
+        },
+        {
+            "first_name": "Shamekh",
+            "last_name": "Al-Suwi",
+            "workload": 0.25
+        },
+        {
+            "first_name": "Eiman",
+            "last_name": "Mohamed",
+            "workload": 0.25
+        },
+
+    ]
+} 
