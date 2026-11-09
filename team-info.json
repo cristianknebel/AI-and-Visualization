@@ -10,7 +10,7 @@
         },
 
         {
-            "student_id": "k1408428",
+            "student_id": "k01408428",
             "first_name": "Alexander",
             "last_name": "Strasser",
             "email": "Alexander.strasser@protonmail.com",
@@ -31,7 +31,7 @@
             "last_name": "Mohamed",
             "email": "eiman.swe@gmail.com",
             "github_user": "EmeeMohamed"
-        },
+        }
 
     ]
 }
