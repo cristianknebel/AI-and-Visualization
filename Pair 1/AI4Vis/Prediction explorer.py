@@ -16,10 +16,12 @@ from transformers import CLIPModel, CLIPProcessor
 # Settings
 REPO = "clip-benchmark/wds_country211"
 SPLIT = "test"  # 100 photos per country in the test split
-N_PER_COUNTRY = 100  # lower this (e.g. 30) for a faster first run
+N_PER_COUNTRY = 100  # all of them; fewer saves little, as the scan passes ~1000 other photos first
 MODEL_NAME = "openai/clip-vit-base-patch32"
 TEMPLATE = "a photo i took in {}."
-CACHE = Path("cache_at_au")
+CACHE = Path(__file__).parent / "cache_at_au"  # next to this script, wherever it is started from
+# The cache is reused while it exists: after changing SPLIT or N_PER_COUNTRY delete cache_at_au,
+# after changing MODEL_NAME, TEMPLATE or the names inside a label set delete cache_at_au/predictions.json.
 BATCH = 16
 
 # Every label set lists Austria first, Australia second.
@@ -46,7 +48,7 @@ def load_classnames():
     return names
 
 
-def collect_images(classnames):
+def collect_images():
     """Stream the split once and save the Austrian/Australian photos locally."""
     img_dir, meta_path = CACHE / "images", CACHE / "meta.json"
 
@@ -54,6 +56,7 @@ def collect_images(classnames):
         return json.loads(meta_path.read_text(encoding="utf-8"))
 
     img_dir.mkdir(parents=True, exist_ok=True)
+    classnames = load_classnames()
     wanted = {classnames.index(country): country for country in COUNTRIES}
     counts = {country: 0 for country in COUNTRIES}
     meta = []
@@ -85,12 +88,16 @@ def collect_images(classnames):
 
 # Model
 @torch.no_grad()
-def compute_predictions(meta, classnames):
+def compute_predictions(meta):
     pred_path = CACHE / "predictions.json"
 
     if pred_path.exists():
-        return json.loads(pred_path.read_text(encoding="utf-8"))
+        preds = json.loads(pred_path.read_text(encoding="utf-8"))
+        if len(preds) == len(meta) and all(list(p["sets"]) == list(LABEL_SETS) for p in preds):
+            return preds
+        print("predictions.json doesn't match the photos or LABEL_SETS, recomputing...")
 
+    classnames = load_classnames()
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Loading {MODEL_NAME} on {device}...")
     model = CLIPModel.from_pretrained(MODEL_NAME).to(device).eval()
@@ -146,11 +153,12 @@ def explorer(meta, preds):
 
     fig = plt.figure(figsize=(14, 8))
     fig.canvas.manager.set_window_title("CLIP prediction explorer: Austria vs. Australia")
-    gs = fig.add_gridspec(4, 2, width_ratios=[1.25, 1], hspace=1.0, wspace=0.15,
+    rows = len(LABEL_SETS) + 1  # one chart per label set, then the top-5 chart
+    gs = fig.add_gridspec(rows, 2, width_ratios=[1.25, 1], hspace=1.0, wspace=0.35,
                           left=0.03, right=0.97, top=0.90, bottom=0.12)
     ax_img = fig.add_subplot(gs[:, 0])
     ax_sets = [fig.add_subplot(gs[i, 1]) for i in range(len(LABEL_SETS))]
-    ax_top = fig.add_subplot(gs[3, 1])
+    ax_top = fig.add_subplot(gs[rows - 1, 1])
 
     def draw():
         for ax in [ax_img, *ax_sets, ax_top]:
@@ -179,11 +187,11 @@ def explorer(meta, preds):
             names = LABEL_SETS[key]
             colors = [COLORS[c] for c in COUNTRIES]
             ax.barh(names[::-1], probs[::-1], color=colors[::-1])
-            ax.set_xlim(0, 1)
+            ax.set_xlim(0, 1.15)  # room for the label of a bar near 100%
             ax.tick_params(labelsize=10)
 
             for y, v in enumerate(probs[::-1]):
-                ax.text(min(v + 0.01, 0.88), y, f"{v:.1%}", va="center", fontsize=10)
+                ax.text(v + 0.01, y, f"{v:.1%}", va="center", fontsize=10)
 
             pred = int(np.argmax(probs))
             margin = abs(probs[0] - probs[1])
@@ -194,15 +202,15 @@ def explorer(meta, preds):
                          color="#1a7f37" if pred == t else "#b42318")
 
         # top-5 over all 211 countries
-        names = [n for n, _ in p["top211"]][::-1]
+        names = [n if len(n) <= 22 else n[:21] + "…" for n, _ in p["top211"]][::-1]  # long names hit the photo
         vals = [v for _, v in p["top211"]][::-1]
         colors = [COLORS[m["country"]] if n == m["country"] else "#9aa0a6" for n in names]
         ax_top.barh(names, vals, color=colors)
-        ax_top.set_xlim(0, 1)
+        ax_top.set_xlim(0, 1.15)
         ax_top.tick_params(labelsize=10)
 
         for y, v in enumerate(vals):
-            ax_top.text(min(v + 0.01, 0.88), y, f"{v:.1%}", va="center", fontsize=10)
+            ax_top.text(v + 0.01, y, f"{v:.1%}", va="center", fontsize=10)
 
         ax_top.set_title("Top 5 of all 211 countries (true country coloured)",
                          fontsize=10, loc="left")
@@ -227,6 +235,7 @@ def explorer(meta, preds):
     b_prev = Button(fig.add_axes([0.30, 0.025, 0.08, 0.05]), "◀ Prev")
     b_next = Button(fig.add_axes([0.39, 0.025, 0.08, 0.05]), "Next ▶")
     chk = CheckButtons(fig.add_axes([0.50, 0.02, 0.14, 0.06]), ["Only mistakes"], [False])
+    fig.widgets = [b_prev, b_next, chk]  # matplotlib only keeps weak references to widgets
     b_prev.on_clicked(lambda _e: step(-1))
     b_next.on_clicked(lambda _e: step(+1))
     chk.on_clicked(toggle)
@@ -237,10 +246,10 @@ def explorer(meta, preds):
 
     try:
         manager.window.state("zoomed")        # TkAgg (default on Windows)
-    except AttributeError:
+    except Exception:                         # Linux Tk has no "zoomed" (TclError)
         try:
             manager.window.showMaximized()    # Qt backends
-        except AttributeError:
+        except Exception:
             pass                              # other backends: leave as is
 
     draw()
@@ -248,7 +257,6 @@ def explorer(meta, preds):
 
 
 if __name__ == "__main__":
-    classnames = load_classnames()
-    meta = collect_images(classnames)
-    preds = compute_predictions(meta, classnames)
+    meta = collect_images()
+    preds = compute_predictions(meta)
     explorer(meta, preds)

@@ -1,0 +1,8 @@
+# Tested with Python 3.14, torch 2.15, transformers 5.22, datasets 5.1, matplotlib 3.11
+torch
+transformers
+datasets
+huggingface_hub
+matplotlib
+pillow
+numpy
