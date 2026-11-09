@@ -1,0 +1,37 @@
+{
+    "team_name": "The Visionaires",
+    "students": [
+        {
+            "student_id": "k52104480",
+            "first_name": "Cristian",
+            "last_name": "Knebel",
+            "email": "cristian_knebel@yahoo.com",
+            "github_user": "cristianknebel"
+        },
+
+        {
+            "student_id": "k01408428",
+            "first_name": "Alexander",
+            "last_name": "Strasser",
+            "email": "Alexander.strasser@protonmail.com",
+            "github_user": "schwunder"
+        },
+
+        {
+            "student_id": "k12146739",
+            "first_name": "Shamekh",
+            "last_name": "Al-Suwi",
+            "email": "Shamekhing@gmail.com",
+            "github_user": "shamekhing"
+        },
+
+        {
+            "student_id": "k12249316",
+            "first_name": "Eiman",
+            "last_name": "Mohamed",
+            "email": "eiman.swe@gmail.com",
+            "github_user": "EmeeMohamed"
+        }
+
+    ]
+}
