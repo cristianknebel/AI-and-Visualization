@@ -9,14 +9,13 @@ import torch
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, CheckButtons
 from PIL import Image
-from datasets import load_dataset
+from datasets import load_dataset, get_dataset_split_names
 from huggingface_hub import hf_hub_download
 from transformers import CLIPModel, CLIPProcessor
 
 # Settings
 REPO = "clip-benchmark/wds_country211"
-SPLIT = "test"  # 100 photos per country in the test split
-N_PER_COUNTRY = 100  # lower this (e.g. 30) for a faster first run
+EXPECTED = {"train": 150, "validation": 50, "valid": 50, "test": 100}
 MODEL_NAME = "openai/clip-vit-base-patch32"
 TEMPLATE = "a photo i took in {}."
 CACHE = Path("cache_at_au")
@@ -47,7 +46,7 @@ def load_classnames():
 
 
 def collect_images(classnames):
-    """Stream the split once and save the Austrian/Australian photos locally."""
+    """Stream every split once and save all Austrian/Australian photos locally."""
     img_dir, meta_path = CACHE / "images", CACHE / "meta.json"
 
     if meta_path.exists():
@@ -55,28 +54,31 @@ def collect_images(classnames):
 
     img_dir.mkdir(parents=True, exist_ok=True)
     wanted = {classnames.index(country): country for country in COUNTRIES}
-    counts = {country: 0 for country in COUNTRIES}
     meta = []
 
-    dataset = load_dataset(REPO, split=SPLIT, streaming=True)
-    print("Scanning the dataset for Austria/Australia photos...")
+    for split in get_dataset_split_names(REPO):
+        counts = {country: 0 for country in COUNTRIES}
+        target = EXPECTED.get(split)  # None = unknown split, scan it completely
+        dataset = load_dataset(REPO, split=split, streaming=True)
+        print(f"Scanning split '{split}' for Austria/Australia photos...")
 
-    for index, sample in enumerate(dataset):
-        cls = int(sample["cls"])
-        name = wanted.get(cls)
+        for index, sample in enumerate(dataset):
+            name = wanted.get(int(sample["cls"]))
 
-        if name and counts[name] < N_PER_COUNTRY:
-            img = next(value for value in sample.values() if isinstance(value, Image.Image))
-            fname = f"{name}_{counts[name]:03d}.jpg"
-            img.convert("RGB").save(img_dir / fname, quality=92)
-            meta.append({"file": fname, "country": name})
-            counts[name] += 1
+            if name:
+                img = next(value for value in sample.values() if isinstance(value, Image.Image))
+                fname = f"{name}_{split}_{counts[name]:03d}.jpg"
+                img.convert("RGB").save(img_dir / fname, quality=92)
+                meta.append({"file": fname, "country": name, "split": split})
+                counts[name] += 1
 
-        if all(value >= N_PER_COUNTRY for value in counts.values()):
-            break
+            if target and all(value >= target for value in counts.values()):
+                break
 
-        if index % 2000 == 0:
-            print(f"  scanned {index:>6} samples, found {counts}")
+            if index % 2000 == 0:
+                print(f"  scanned {index:>6} samples, found {counts}")
+
+        print(f"  done with '{split}': {counts}")
 
     meta_path.write_text(json.dumps(meta, indent=1), encoding="utf-8")
     print(f"Saved {len(meta)} photos to {img_dir}")
