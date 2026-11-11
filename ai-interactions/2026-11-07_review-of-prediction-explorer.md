@@ -44,3 +44,30 @@ Alexander's prompts, quoted as typed. Each line says what changed.
 - "okay so i am sure we are the ai aided pair. meaning . could i just push without looking at hyour stuff ie the branch and thell him": the AI asked which items to push. Alexander's answer: "i would say i should be transparent with him about ai usage but i did not look at anystuff yet. so maybe just push somethin right now i tell him i loooked roughly what he did and then i do the rest on monday". Result: only the fixes branch (review/robustness) was pushed, on 2026-11-07. This record stayed local until 2026-11-09, and the optional branch is still local.
 - "so why is it so bullet pointe": the WhatsApp drafts became short paragraphs without bullets.
 - "or just details? considering the scope till wednesday": the proposed click-linked scatter was cut to the plain scatter: "just the plain scatter (no clicking, that can come later)".
+
+------------
+
+# 2026-11-11 – ChatGPT: Project Planning
+
+- **Who:** Cristian Knebel
+- **Tool:** ChatGPT (GPT-6)
+- **Purpose:** Idea and choosing visualizations.
+
+## Important prompt
+
+> Give me a concrete project idea for "How do pretrained neural networks confuse similar classes?".
+
+## Suggestions I chose and why
+
+| Visualization / Method | Why I chose it |
+|---|---|
+| Language Shift | To investigate how changing the language or class descriptions affects the model's predictions and reveals differences in how classes are interpreted. |
+| Prediction Explorer | To interactively explore model predictions, compare correct and incorrect classifications, and identify patterns in classification errors. |
+
+I chose these methods because they investigate different aspects of the research question: Language Shift helps explore how changes in language affect predictions, while Prediction Explorer allows me to inspect individual predictions and identify patterns in classification errors.
+
+## Other decisions
+
+- **Model:** `openai/clip-vit-base-patch32`, a pretrained CLIP model that compares image and text representations to calculate image–text similarity.
+- **Dataset:** `clip-benchmark/wds_country211`, a dataset containing images from 211 countries, used to investigate how CLIP recognizes and predicts country-related concepts.
+- **Approach:** First analyze CLIP's predictions, then investigate how changing text descriptions affects the predictions (Language Shift). Use the Prediction Explorer to inspect individual predictions and identify patterns in classification errors.
